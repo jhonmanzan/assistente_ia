@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistente de Código com IA</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 15px;
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #5a67d8;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .resposta {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .carregando {
+      color: #667eea;
+      font-style: italic;
+    }
+
+    .erro {
+      border-left-color: #e53e3e;
+      color: #e53e3e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Assistente de Código com IA</h1>
+    <p>Peça ajuda com código, correções, explicações ou boas práticas</p>
+
+    <textarea id="pergunta" rows="5" placeholder="Ex: Como fazer um fetch em React?&#10;ou&#10;Corrija esse código: function soma(a,b){return a+b}"></textarea>
+
+    <button id="enviar">Perguntar para IA</button>
+
+    <div id="resposta" class="resposta"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001/perguntar';
+
+    const perguntaInput = document.getElementById('pergunta');
+    const enviarBtn = document.getElementById('enviar');
+    const respostaDiv = document.getElementById('resposta');
+
+    enviarBtn.addEventListener('click', async () => {
+      const pergunta = perguntaInput.value.trim();
+
+      if (!pergunta) {
+        respostaDiv.innerHTML = '<div class="erro">❌ Digite uma pergunta primeiro!</div>';
+        return;
+      }
+
+      respostaDiv.innerHTML = '<div class="carregando">🤔 Pensando...</div>';
+      enviarBtn.disabled = true;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ pergunta: pergunta })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          respostaDiv.innerHTML = `<div>${data.resposta.replace(/\n/g, '<br>')}</div>`;
+        } else {
+          respostaDiv.innerHTML = `<div class="erro">❌ Erro: ${data.erro}</div>`;
+        }
+      } catch (error) {
+        respostaDiv.innerHTML = '<div class="erro">❌ Erro de conexão. O backend está rodando?</div>';
+      } finally {
+        enviarBtn.disabled = false;
+      }
+    });
+
+    // Ctrl + Enter envia
+    perguntaInput.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        enviarBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
